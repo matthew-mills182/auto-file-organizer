@@ -1,5 +1,6 @@
 import os
 import shutil
+import time
 
 # Establish folder to watch
 downloads = r"/mnt/c/Users/mills/Downloads"
@@ -13,30 +14,35 @@ folders = {
     "Archives": [".zip", ".rar", ".7z", ".tar", ".gz", ".bz2"]
 }
 
-# Loop through all items in Downloads
-for item in os.listdir(downloads):
-    item_path = os.path.join(downloads, item)
+def organize_downloads():
+    for item in os.listdir(downloads):
+        item_path = os.path.join(downloads, item)
 
-    if os.path.isdir(item_path):
-        continue
+        if os.path.isdir(item_path):
+            continue
 
-    # Get file extension
-    _, ext = os.path.splitext(item)
-    ext = ext.lower()
+        _, ext = os.path.splitext(item)
+        ext = ext.lower()
 
-    moved = False
-    for folder_name, extensions in folders.items():
-        if ext in extensions:
-            dest_folder = os.path.join(downloads, folder_name)
-            if not os.path.exists(dest_folder):
-                os.makedirs(dest_folder)
+        moved = False
+        for folder_name, extensions in folders.items():
+            if ext in extensions:
+                dest_folder = os.path.join(downloads, folder_name)
+                os.makedirs(dest_folder, exist_ok=True)
+                shutil.move(item_path, os.path.join(dest_folder, item))
+                moved = True
+                break
+
+        if not moved:
+            dest_folder = os.path.join(downloads, "Others")
+            os.makedirs(dest_folder, exist_ok=True)
             shutil.move(item_path, os.path.join(dest_folder, item))
-            moved = True
-            break
 
-    # if a file extension I have not accounted for, move to others
-    if not moved:
-        dest_folder = os.path.join(downloads, "Others")
-        if not os.path.exists(dest_folder):
-            os.makedirs(dest_folder)
-        shutil.move(item_path, os.path.join(dest_folder, item))
+print("Starting download organizer. Press Ctrl+C to stop.")
+
+try:
+    while True:
+        organize_downloads()
+        time.sleep(5)  # check every 5 seconds
+except KeyboardInterrupt:
+    print("Organizer stopped.")
